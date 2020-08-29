@@ -145,7 +145,8 @@ class PageDrawer {
 	constructor(
 		private mangaFile: MangaFile,
 		private canvas: HTMLCanvasElement,
-		private ctx: CanvasRenderingContext2D
+		private ctx: CanvasRenderingContext2D,
+		private page: number
 	) {}
 
 	private drawSinglePage(bitmap: ImageBitmap) {
@@ -169,29 +170,21 @@ class PageDrawer {
 		this.ctx.drawImage(bitmap2, bitmap1.width, (this.canvas.height - bitmap2.height) / 2)
 	}
 
-	async shouldDrawInMultiPage(page: number) {
-		const p1 = await this.mangaFile.getSize(page)
-		if (p1.width < p1.height && page + 1 < this.mangaFile.length) {
-			const p2 = await this.mangaFile.getSize(page + 1)
-			if (p2.width < p2.height) {
-				return true
-			}
-		}
+	async draw(multiPaged: boolean): Promise<void> {
+		console.log(`starting draw... page: ${this.page}`)
 
-		return false
-	}
+		const bitmap = await this.mangaFile.getPageImageBitmap(this.page)
 
-	async drawPage(page: number): Promise<boolean> {
-		const bitmap = await this.mangaFile.getPageImageBitmap(page)
-		const multiPaged = await this.shouldDrawInMultiPage(page)
 		if (multiPaged) {
-			const bitmap2 = await this.mangaFile.getPageImageBitmap(page + 1)
+			const bitmap2 = await this.mangaFile.getPageImageBitmap(this.page + 1)
+
+			console.log(`finished draw in multi page: ${this.page}`)
 			this.drawMultiPage(bitmap2, bitmap)
-			return true
+			return
 		}
 
+		console.log(`finished draw in single page: ${this.page}`)
 		this.drawSinglePage(bitmap)
-		return false
 	}
 }
 
@@ -200,7 +193,9 @@ export class MangaView {
 	private isCurrentlyMultipaged = false
 	private canvas: HTMLCanvasElement
 	private ctx: CanvasRenderingContext2D
-	private pageDrawer
+	private pageDrawer: PageDrawer | undefined
+	private pageToDrawNext: number | undefined
+	private drawedPage: number | undefined
 
 	constructor(private mangaFile_: MangaFile) {
 		this.canvas = document.getElementById('view') as HTMLCanvasElement
@@ -209,8 +204,24 @@ export class MangaView {
 			throw new Error('canvasのコンテキストが取得できませんでした')
 		}
 		this.ctx = ctx
+	}
 
-		this.pageDrawer = new PageDrawer(this.mangaFile, this.canvas, ctx)
+	async refreshPage(): Promise<void> {
+		const cpage = this.currentPage
+		if (cpage === undefined || this.pageDrawer !== undefined || cpage === this.drawedPage) {
+			return
+		}
+
+		this.pageDrawer = new PageDrawer(this.mangaFile, this.canvas, this.ctx, cpage)
+		const multiPaged = await this.shouldDrawInMultiPage(cpage)
+		console.log(multiPaged)
+		this.isCurrentlyMultipaged = multiPaged
+
+		await this.pageDrawer.draw(multiPaged)
+		this.pageDrawer = undefined
+		this.drawedPage = cpage
+
+		void this.refreshPage()
 	}
 
 	async moveToPage(page: number): Promise<void> {
@@ -224,8 +235,7 @@ export class MangaView {
 
 		this.currentPage_ = page
 		this.preFetchRange(page - 2, page + 5)
-
-		this.isCurrentlyMultipaged = await this.pageDrawer.drawPage(page)
+		await this.refreshPage()
 	}
 
 	private preFetchRange(from: number, to: number) {
