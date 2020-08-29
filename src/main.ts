@@ -1,20 +1,20 @@
 import { BrowserWindow, app } from 'electron'
 
-function createWindow() {
+async function createWindow() {
 	const window = new BrowserWindow({
 		width: 800,
 		height: 600,
 		webPreferences: {
-			nodeIntegration: true
-		}
+			nodeIntegration: true,
+		},
 	})
 
-	window.loadFile('./dist/renderer/index.html')
+	await window.loadFile('./dist/renderer/index.html')
 }
 
 async function main() {
 	await app.whenReady()
-	createWindow()
+	await createWindow()
 }
 
-main()
+void main()

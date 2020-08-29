@@ -5,8 +5,8 @@ const common = {
 	resolve: {
 		extensions: ['.wasm', '.ts', '.mjs', '.js', '.json'],
 		alias: {
-			Renderer: path.resolve(__dirname, 'src/renderer/'),
-			Main: path.resolve(__dirname, 'src/renderer/')
+			Src: path.resolve(__dirname, 'src/'),
+			Renderer: path.resolve(__dirname, 'src/renderer/')
 		}
 	}
 }
@@ -18,11 +18,20 @@ const rendererConfig = {
 	devtool: 'inline-source-map',
 	entry: './src/renderer/index.ts',
 	output: {
-		path: path.resolve(__dirname, 'dist', 'renderer'),
-		filename: 'index.js'
+		filename: 'index.js',
+		path: path.resolve(__dirname, 'dist', 'renderer')
 	},
 	module: {
 		rules: [
+			{
+				enforce: 'pre',
+				test: /\.(ts|js)$/,
+				exclude: /node_modules/,
+				loader: 'eslint-loader',
+				options: {
+					fix: true
+				}
+			},
 			{
 				test: /\.ts$/,
 				loader: 'ts-loader'
@@ -41,17 +50,26 @@ const mainConfig = {
 	mode: 'development',
 	target: 'electron-main',
 	entry: './src/main.ts',
+	output: {
+		filename: 'main.js',
+		path: path.resolve(__dirname, 'dist')
+	},
 	module: {
 		rules: [
+			{
+				enforce: 'pre',
+				test: /\.(ts|js)$/,
+				exclude: /node_modules/,
+				loader: 'eslint-loader',
+				options: {
+					fix: true
+				}
+			},
 			{
 				test: /\.ts$/,
 				loader: 'ts-loader'
 			},
 		]
-	},
-	output: {
-		path: path.resolve(__dirname, 'dist'),
-		filename: 'main.js'
 	}
 };
 

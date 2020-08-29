@@ -10,7 +10,12 @@ function minmax(v: number, min: number, max: number): number {
 	return v
 }
 
-function renderedRect(imgW: number, imgH: number, viewW: number, viewH: number): { x: number, y: number, width: number, height: number, ratio: number } {
+function renderedRect(
+	imgW: number,
+	imgH: number,
+	viewW: number,
+	viewH: number
+): { x: number; y: number; width: number; height: number; ratio: number } {
 	const wRatio = viewW / imgW
 	const hRatio = viewH / imgH
 	const ratio = Math.min(wRatio, hRatio)
@@ -34,7 +39,7 @@ export class Loupe {
 		this.ctx = ctx
 
 		this.off()
-		this.canvas.addEventListener('mousemove', e => {
+		this.canvas.addEventListener('mousemove', (e) => {
 			const viewRect = this.mainView.getBoundingClientRect()
 			const rx = e.clientX - viewRect.x
 			const ry = e.clientY - viewRect.y
@@ -42,15 +47,15 @@ export class Loupe {
 		})
 	}
 
-	on() {
+	on(): void {
 		this.loupeElm.style.visibility = 'visible'
 	}
 
-	off() {
+	off(): void {
 		this.loupeElm.style.visibility = 'hidden'
 	}
 
-	drawLoupe(rx: number, ry: number) {
+	drawLoupe(rx: number, ry: number): void {
 		const viewRect = this.mainView.getBoundingClientRect()
 		const loupeRect = this.loupeElm.getBoundingClientRect()
 		let zoomMultiplier = 1.5
@@ -66,7 +71,12 @@ export class Loupe {
 		{
 			const canvas = this.canvas
 			const canvasRect = canvas.getBoundingClientRect()
-			const rendered = renderedRect(canvas.width, canvas.height, canvasRect.width, canvasRect.height)
+			const rendered = renderedRect(
+				canvas.width,
+				canvas.height,
+				canvasRect.width,
+				canvasRect.height
+			)
 			const renderedZoomMultiplier = rendered.width / canvas.width
 			zoomMultiplier = Math.max(zoomMultiplier, renderedZoomMultiplier * 1.5)
 
@@ -74,8 +84,16 @@ export class Loupe {
 			this.loupeElm.width = w
 			this.loupeElm.height = h
 			const r = 1 / rendered.ratio
-			const x = minmax((rx - rendered.x) * r - w / zoomMultiplier / 2, 0, canvas.width - w / 2)
-			const y = minmax((ry - rendered.y) * r - h / zoomMultiplier / 2, 0, canvas.height - h / 2)
+			const x = minmax(
+				(rx - rendered.x) * r - w / zoomMultiplier / 2,
+				0,
+				canvas.width - w / 2
+			)
+			const y = minmax(
+				(ry - rendered.y) * r - h / zoomMultiplier / 2,
+				0,
+				canvas.height - h / 2
+			)
 
 			this.ctx.drawImage(canvas, x, y, w / zoomMultiplier, h / zoomMultiplier, 0, 0, w, h)
 		}

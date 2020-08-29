@@ -7,8 +7,7 @@ class Fetching {
 	private handlers: FinishHandler[] = []
 	private result_: ImageBitmap | undefined
 
-	constructor(private getContetFunc: () => Promise<ImageBitmap>, public lastAccess: number) {
-	}
+	constructor(private getContetFunc: () => Promise<ImageBitmap>, public lastAccess: number) {}
 
 	async start() {
 		this.result_ = await this.getContetFunc()
@@ -49,18 +48,20 @@ class CacheManager {
 			return content.result
 		}
 
-		return new Promise((resolve) => { content.addFinishHandler(resolve) })
+		return new Promise((resolve) => {
+			content.addFinishHandler(resolve)
+		})
 	}
 
 	preFetch(page: number): Fetching {
 		const content = this.cache[page]
 		if (content === undefined) {
 			const fetching = new Fetching(() => this.getContetFunc(page), this.getAccessCount())
-			fetching.start()
+			void fetching.start()
 
 			this.cache[page] = fetching
 
-			if (10 < this.cache.filter(x => x instanceof Fetching).length) {
+			if (10 < this.cache.filter((x) => x instanceof Fetching).length) {
 				this.removeCache(this.findOldestCache())
 			}
 			return fetching
@@ -84,7 +85,7 @@ class CacheManager {
 		return oldestIndex
 	}
 
-	async removeCache(page: number) {
+	removeCache(page: number) {
 		this.cache[page] = undefined
 	}
 }
@@ -98,7 +99,7 @@ export class MangaFile {
 		this.cache = new CacheManager((page) => this.getPageImageBitmapFromZip(page))
 	}
 
-	async init() {
+	async init(): Promise<void> {
 		const buf = await fs.readFile(this.path)
 		await this.zip.loadAsync(buf)
 
@@ -117,7 +118,7 @@ export class MangaFile {
 		return await this.getPageImageBitmapFromZip(page)
 	}
 
-	async getSize(page: number): Promise<{ width: number, height: number }> {
+	async getSize(page: number): Promise<{ width: number; height: number }> {
 		const bitmap = await this.cache.getContent(page)
 		return { width: bitmap.width, height: bitmap.height }
 	}
@@ -131,7 +132,7 @@ export class MangaFile {
 		return await createImageBitmap(imgbuffer)
 	}
 
-	preFetch(page: number) {
+	preFetch(page: number): void {
 		this.cache.preFetch(page)
 	}
 
@@ -142,7 +143,7 @@ export class MangaFile {
 
 export class MangaView {
 	private currentPage_: number | undefined
-	private isCurrentlyMultipaged: boolean = false
+	private isCurrentlyMultipaged = false
 	private canvas: HTMLCanvasElement
 	private ctx: CanvasRenderingContext2D
 
@@ -155,7 +156,7 @@ export class MangaView {
 		this.ctx = ctx
 	}
 
-	async moveToPage(page: number) {
+	async moveToPage(page: number): Promise<void> {
 		if (page < 0 || this.mangaFile.length <= page) {
 			throw new Error('無効なページ番号')
 		}
@@ -174,7 +175,7 @@ export class MangaView {
 			return
 		}
 
-		await this.drawSinglePage(bitmap)
+		this.drawSinglePage(bitmap)
 	}
 
 	private preFetchRange(from: number, to: number) {
@@ -196,7 +197,7 @@ export class MangaView {
 		return false
 	}
 
-	private async drawSinglePage(bitmap: ImageBitmap) {
+	private drawSinglePage(bitmap: ImageBitmap) {
 		this.canvas.width = bitmap.width
 		this.canvas.height = bitmap.height
 		const br = this.canvas.getContext('bitmaprenderer')
@@ -217,19 +218,24 @@ export class MangaView {
 		this.ctx.drawImage(bitmap2, bitmap1.width, (this.canvas.height - bitmap2.height) / 2)
 	}
 
-	async nextPage() {
+	async nextPage(): Promise<void> {
 		const movePage = this.isCurrentlyMultipaged ? 2 : 1
-		await this.moveToPage(Math.min(this.mangaFile.length - 1, this.currentPage_ === undefined ? 0 : this.currentPage_ + movePage))
+		await this.moveToPage(
+			Math.min(
+				this.mangaFile.length - 1,
+				this.currentPage_ === undefined ? 0 : this.currentPage_ + movePage
+			)
+		)
 	}
 
-	async prevPage() {
+	async prevPage(): Promise<void> {
 		const page = this.currentPage_
 		if (!page) {
 			await this.moveToPage(0)
 			return
 		}
 
-		if (0 <= page - 2 && await this.shouldDrawInMultiPage(page - 2)) {
+		if (0 <= page - 2 && (await this.shouldDrawInMultiPage(page - 2))) {
 			await this.moveToPage(page - 2)
 			return
 		}

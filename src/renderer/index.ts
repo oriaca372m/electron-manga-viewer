@@ -1,11 +1,11 @@
 import { MangaFile, MangaView } from './manga'
 import { Loupe } from './loupe'
 
-async function genThumbnails(mangaView: MangaView) {
+function genThumbnails(mangaView: MangaView) {
 	const mangaFile = mangaView.mangaFile
 
 	const thumbnails = document.getElementById('thumbnails-body')
-	const setThumbnail = (async (page: number, canvas: HTMLCanvasElement) => {
+	const setThumbnail = async (page: number, canvas: HTMLCanvasElement) => {
 		const ni = await mangaFile.getPageImageBitmap(page, false)
 		const ctx = canvas.getContext('2d')
 
@@ -20,18 +20,18 @@ async function genThumbnails(mangaView: MangaView) {
 		}
 		ni.close()
 		canvas.scrollIntoView()
-	})
+	}
 
 	for (let i = 0; i < mangaFile.length; i++) {
-		const canvas = document.createElement('canvas') as HTMLCanvasElement
+		const canvas = document.createElement('canvas')
 		canvas.height = 300
 		canvas.width = 300
 		thumbnails?.appendChild(canvas)
 
 		canvas.addEventListener('click', () => {
-			mangaView.moveToPage(i)
+			void mangaView.moveToPage(i)
 		})
-		setThumbnail(i, canvas)
+		void setThumbnail(i, canvas)
 	}
 }
 
@@ -47,49 +47,49 @@ async function main() {
 
 	genThumbnails(mangaView)
 
-	document.getElementById('prev')?.addEventListener('click', async () => {
+	document.getElementById('prev')?.addEventListener('click', () => {
 		loupe.off()
-		await mangaView.prevPage()
+		void mangaView.prevPage()
 	})
 
-	document.getElementById('next')?.addEventListener('click', async () => {
+	document.getElementById('next')?.addEventListener('click', () => {
 		loupe.off()
-		await mangaView.nextPage()
+		void mangaView.nextPage()
 	})
 
-	document.getElementById('view')?.addEventListener('wheel', async (e) => {
+	document.getElementById('view')?.addEventListener('wheel', (e) => {
 		e.preventDefault()
 		loupe.off()
 
 		if (e.deltaY < 0) {
-			await mangaView.prevPage()
+			void mangaView.prevPage()
 			return
 		}
 
 		if (0 < e.deltaY) {
-			await mangaView.nextPage()
+			void mangaView.nextPage()
 			return
 		}
 	})
 
 	document.getElementById('show-thumbnails')?.addEventListener('click', () => {
-		const thumbnails = document.getElementById('thumbnails')!
+		const thumbnails = document.getElementById('thumbnails') as HTMLDivElement
 		thumbnails.classList.toggle('thumbnails-visible')
 	})
 
 	const canvas = document.getElementById('view') as HTMLCanvasElement
 
-	canvas.addEventListener('mousedown', e => {
+	canvas.addEventListener('mousedown', (e) => {
 		loupe.on()
 		e.preventDefault()
 	})
 
-	canvas.addEventListener('mouseup', e => {
+	canvas.addEventListener('mouseup', (e) => {
 		loupe.off()
 		e.preventDefault()
 	})
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-	main()
+	void main()
 })
