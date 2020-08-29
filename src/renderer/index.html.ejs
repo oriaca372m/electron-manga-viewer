@@ -34,12 +34,63 @@
 				object-fit: contain;
 			}
 
+			#thumbnails {
+				position: absolute;
+				left: 0;
+				top: 0;
+				width: 100%;
+				height: 100%;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				visibility: hidden;
+				background-color: #0008;
+				backdrop-filter: blur(0px);
+				opacity: 0;
+				transition: backdrop-filter 1.5s, visibility 1.5s, opacity 1.5s;
+			}
+
+			#thumbnails.thumbnails-visible {
+				visibility: visible;
+				backdrop-filter: blur(12px);
+				opacity: 1;
+			}
+
+			#thumbnails-body {
+				display: grid;
+				padding: 1rem;
+				width: 80%;
+				height: 80%;
+				overflow: auto;
+				justify-content: space-evenly;
+				grid-template-columns: repeat(auto-fill, 300px);
+				grid-gap: 1rem;
+				justify-items: center;
+				align-items: center;
+			}
+
+			@keyframes aaa {
+				0% {
+					background-color: #0000;
+					backdrop-filter: blur(0px);
+				}
+
+				100% {
+					background-color: #0005;
+					backdrop-filter: blur(12px);
+				}
+			}
+
+			#thumbnails-body canvas {
+			}
+
 			#loupe {
 				position: absolute;
 				width: 300px;
 				height: 300px;
 				top: 0;
 				left: 0;
+				pointer-events: none;
 			}
 		</style>
 	</head>
@@ -47,10 +98,14 @@
 		<div>
 			<button type="button" id="next">次へ</button>
 			<button type="button" id="prev">前へ</button>
+			<button type="button" id="show-thumbnails">サムネイル表示</button>
 		</div>
 		<div id="main-view">
+			<div id="thumbnails">
+				<div id="thumbnails-body"></div>
+			</div>
 			<canvas id="view"></canvas>
-			<canvas id="loupe"></div>
+			<canvas id="loupe"></canvas>
 		</div>
 	</body>
 </html>

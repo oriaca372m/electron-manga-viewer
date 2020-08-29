@@ -1,108 +1,92 @@
-import fs from 'fs'
-import JSZip from 'jszip'
+import { MangaFile, MangaView } from './manga'
+import { Loupe } from './loupe'
 
-async function drawFile(zip: JSZip, path: string) {
-	const imgbuffer = await zip.file(path)?.async('blob')
-	if (!imgbuffer) {
-		throw 'err2'
+async function genThumbnails(mangaView: MangaView) {
+	const mangaFile = mangaView.mangaFile
+
+	const thumbnails = document.getElementById('thumbnails-body')
+	const setThumbnail = (async (page: number, canvas: HTMLCanvasElement) => {
+		const ni = await mangaFile.getPageImageBitmap(page, false)
+		const ctx = canvas.getContext('2d')
+
+		if (ni.height < ni.width) {
+			const h = 300 * (ni.height / ni.width)
+			canvas.height = h
+			ctx?.drawImage(ni, 0, 0, ni.width, ni.height, 0, 0, 300, h)
+		} else {
+			const w = 300 * (ni.width / ni.height)
+			canvas.width = w
+			ctx?.drawImage(ni, 0, 0, ni.width, ni.height, 0, 0, w, 300)
+		}
+		ni.close()
+		canvas.scrollIntoView()
+	})
+
+	for (let i = 0; i < mangaFile.length; i++) {
+		const canvas = document.createElement('canvas') as HTMLCanvasElement
+		canvas.height = 300
+		canvas.width = 300
+		thumbnails?.appendChild(canvas)
+
+		canvas.addEventListener('click', () => {
+			mangaView.moveToPage(i)
+		})
+		setThumbnail(i, canvas)
 	}
-
-	console.log(imgbuffer)
-	const ni = await createImageBitmap(imgbuffer)
-
-	const canvas = document.getElementById('view') as HTMLCanvasElement
-	const br = canvas.getContext('bitmaprenderer')
-	canvas.width = ni.width
-	canvas.height = ni.height
-	br?.transferFromImageBitmap(ni)
-}
-
-function minmax(v: number, min: number, max: number): number {
-	if (v < min) {
-		return min
-	}
-
-	if (v > max) {
-		return max
-	}
-
-	return v
-}
-
-function renderedRect(imgW: number, imgH: number, viewW: number, viewH: number): { x: number, y: number, width: number, height: number, ratio: number } {
-	const wRatio = viewW / imgW
-	const hRatio = viewH / imgH
-	const ratio = Math.min(wRatio, hRatio)
-	const width = ratio * imgW
-	const height = ratio * imgH
-	return { ratio, width, height, x: (viewW - width) / 2, y: (viewH - height) / 2 }
 }
 
 async function main() {
-	const buf = await fs.promises.readFile('./test-res/01.zip')
-	const zip = new JSZip()
+	const mangaFile = new MangaFile('./test-res/01s.zip')
+	await mangaFile.init()
+	const mangaView = new MangaView(mangaFile)
 
-	let files: string[] = []
-	await zip.loadAsync(buf)
-	zip.forEach(x => {
-		files.push(x)
-		console.log(x)
-	})
-	let idx = 0
-	await drawFile(zip, files[idx])
+	await mangaView.moveToPage(0)
+
+	const loupeElm = document.getElementById('loupe') as HTMLCanvasElement
+	const loupe = new Loupe(loupeElm)
+
+	genThumbnails(mangaView)
 
 	document.getElementById('prev')?.addEventListener('click', async () => {
-		idx--
-		await drawFile(zip, files[idx])
+		loupe.off()
+		await mangaView.prevPage()
 	})
 
 	document.getElementById('next')?.addEventListener('click', async () => {
-		idx++
-		await drawFile(zip, files[idx])
+		loupe.off()
+		await mangaView.nextPage()
+	})
+
+	document.getElementById('view')?.addEventListener('wheel', async (e) => {
+		e.preventDefault()
+		loupe.off()
+
+		if (e.deltaY < 0) {
+			await mangaView.prevPage()
+			return
+		}
+
+		if (0 < e.deltaY) {
+			await mangaView.nextPage()
+			return
+		}
+	})
+
+	document.getElementById('show-thumbnails')?.addEventListener('click', () => {
+		const thumbnails = document.getElementById('thumbnails')!
+		thumbnails.classList.toggle('thumbnails-visible')
 	})
 
 	const canvas = document.getElementById('view') as HTMLCanvasElement
-	const loupe = document.getElementById('loupe') as HTMLCanvasElement
-	const mainView = document.getElementById('main-view') as HTMLDivElement
 
-	mainView.addEventListener('mousedown', e => {
-		loupe.style.visibility = 'visible'
+	canvas.addEventListener('mousedown', e => {
+		loupe.on()
 		e.preventDefault()
 	})
 
-	mainView.addEventListener('mouseup', e => {
-		loupe.style.visibility = 'hidden'
+	canvas.addEventListener('mouseup', e => {
+		loupe.off()
 		e.preventDefault()
-	})
-
-	mainView.addEventListener('mousemove', e => {
-		const viewRect = mainView.getBoundingClientRect()
-		const loupeRect = loupe.getBoundingClientRect()
-		const rx = e.clientX - viewRect.x
-		const ry = e.clientY - viewRect.y
-
-		{
-			const x = minmax(rx - loupeRect.width / 2, 0, viewRect.width - loupeRect.width)
-			const y = minmax(ry - loupeRect.height / 2, 0, viewRect.height - loupeRect.height)
-
-			loupe.style.left = `${x}px`
-			loupe.style.top = `${y}px`
-		}
-
-		{
-			const canvasRect = canvas.getBoundingClientRect()
-			const rendered = renderedRect(canvas.width, canvas.height, canvasRect.width, canvasRect.height)
-
-			const { width: w, height: h } = loupeRect
-			loupe.width = w
-			loupe.height = h
-			const r = 1 / rendered.ratio
-			const x = minmax((rx - rendered.x) * r - w / 4, 0, canvas.width - w / 2)
-			const y = minmax((ry - rendered.y) * r - h / 4, 0, canvas.height - h / 2)
-
-			const ctx = loupe.getContext('2d')
-			ctx?.drawImage(canvas, x, y, w / 2, h / 2, 0, 0, w, h)
-		}
 	})
 }
 
