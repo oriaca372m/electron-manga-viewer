@@ -141,61 +141,12 @@ export class MangaFile {
 	}
 }
 
-export class MangaView {
-	private currentPage_: number | undefined
-	private isCurrentlyMultipaged = false
-	private canvas: HTMLCanvasElement
-	private ctx: CanvasRenderingContext2D
-
-	constructor(private mangaFile_: MangaFile) {
-		this.canvas = document.getElementById('view') as HTMLCanvasElement
-		const ctx = this.canvas.getContext('2d')
-		if (!ctx) {
-			throw new Error('canvasのコンテキストが取得できませんでした')
-		}
-		this.ctx = ctx
-	}
-
-	async moveToPage(page: number): Promise<void> {
-		if (page < 0 || this.mangaFile.length <= page) {
-			throw new Error('無効なページ番号')
-		}
-
-		if (this.currentPage_ === page) {
-			return
-		}
-
-		this.currentPage_ = page
-		this.preFetchRange(page - 2, page + 5)
-		const bitmap = await this.mangaFile.getPageImageBitmap(page)
-		this.isCurrentlyMultipaged = await this.shouldDrawInMultiPage(page)
-		if (this.isCurrentlyMultipaged) {
-			const bitmap2 = await this.mangaFile.getPageImageBitmap(page + 1)
-			this.drawMultiPage(bitmap2, bitmap)
-			return
-		}
-
-		this.drawSinglePage(bitmap)
-	}
-
-	private preFetchRange(from: number, to: number) {
-		to = Math.min(this.mangaFile.length, to)
-		for (let i = Math.max(0, from); i < to; i++) {
-			this.mangaFile.preFetch(i)
-		}
-	}
-
-	private async shouldDrawInMultiPage(page: number) {
-		const p1 = await this.mangaFile.getSize(page)
-		if (p1.width < p1.height && page + 1 < this.mangaFile.length) {
-			const p2 = await this.mangaFile.getSize(page + 1)
-			if (p2.width < p2.height) {
-				return true
-			}
-		}
-
-		return false
-	}
+class PageDrawer {
+	constructor(
+		private mangaFile: MangaFile,
+		private canvas: HTMLCanvasElement,
+		private ctx: CanvasRenderingContext2D
+	) {}
 
 	private drawSinglePage(bitmap: ImageBitmap) {
 		this.canvas.width = bitmap.width
@@ -216,6 +167,84 @@ export class MangaView {
 
 		this.ctx.drawImage(bitmap1, 0, (this.canvas.height - bitmap1.height) / 2)
 		this.ctx.drawImage(bitmap2, bitmap1.width, (this.canvas.height - bitmap2.height) / 2)
+	}
+
+	async shouldDrawInMultiPage(page: number) {
+		const p1 = await this.mangaFile.getSize(page)
+		if (p1.width < p1.height && page + 1 < this.mangaFile.length) {
+			const p2 = await this.mangaFile.getSize(page + 1)
+			if (p2.width < p2.height) {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	async drawPage(page: number): Promise<boolean> {
+		const bitmap = await this.mangaFile.getPageImageBitmap(page)
+		const multiPaged = await this.shouldDrawInMultiPage(page)
+		if (multiPaged) {
+			const bitmap2 = await this.mangaFile.getPageImageBitmap(page + 1)
+			this.drawMultiPage(bitmap2, bitmap)
+			return true
+		}
+
+		this.drawSinglePage(bitmap)
+		return false
+	}
+}
+
+export class MangaView {
+	private currentPage_: number | undefined
+	private isCurrentlyMultipaged = false
+	private canvas: HTMLCanvasElement
+	private ctx: CanvasRenderingContext2D
+	private pageDrawer
+
+	constructor(private mangaFile_: MangaFile) {
+		this.canvas = document.getElementById('view') as HTMLCanvasElement
+		const ctx = this.canvas.getContext('2d')
+		if (!ctx) {
+			throw new Error('canvasのコンテキストが取得できませんでした')
+		}
+		this.ctx = ctx
+
+		this.pageDrawer = new PageDrawer(this.mangaFile, this.canvas, ctx)
+	}
+
+	async moveToPage(page: number): Promise<void> {
+		if (page < 0 || this.mangaFile.length <= page) {
+			throw new Error('無効なページ番号')
+		}
+
+		if (this.currentPage_ === page) {
+			return
+		}
+
+		this.currentPage_ = page
+		this.preFetchRange(page - 2, page + 5)
+
+		this.isCurrentlyMultipaged = await this.pageDrawer.drawPage(page)
+	}
+
+	private preFetchRange(from: number, to: number) {
+		to = Math.min(this.mangaFile.length, to)
+		for (let i = Math.max(0, from); i < to; i++) {
+			this.mangaFile.preFetch(i)
+		}
+	}
+
+	private async shouldDrawInMultiPage(page: number) {
+		const p1 = await this.mangaFile.getSize(page)
+		if (p1.width < p1.height && page + 1 < this.mangaFile.length) {
+			const p2 = await this.mangaFile.getSize(page + 1)
+			if (p2.width < p2.height) {
+				return true
+			}
+		}
+
+		return false
 	}
 
 	async nextPage(): Promise<void> {
