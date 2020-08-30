@@ -213,7 +213,6 @@ export class MangaView {
 	private canvas: HTMLCanvasElement
 	private ctx: CanvasRenderingContext2D
 	private pageDrawer: PageDrawer | undefined
-	private pageToDrawNext: number | undefined
 	private drawedPage: number | undefined
 
 	constructor(private mangaFile_: MangaFile) {

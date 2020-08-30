@@ -36,7 +36,7 @@ function genThumbnails(mangaView: MangaView) {
 }
 
 async function main() {
-	const loader = new ZipMangaLoader('./test-res/01s.zip')
+	const loader = new ZipMangaLoader('./test-res/09.zip')
 	const mangaFile = new MangaFile(loader)
 	await mangaFile.init()
 	const mangaView = new MangaView(mangaFile)
@@ -97,6 +97,10 @@ async function main() {
 
 	judge.addEventListener('mousedown', (e) => {
 		loupe.on()
+		const viewRect = judge.getBoundingClientRect()
+		const rx = e.clientX - viewRect.x
+		const ry = e.clientY - viewRect.y
+		loupe.drawLoupe(rx, ry)
 		e.preventDefault()
 	})
 

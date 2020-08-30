@@ -50,13 +50,14 @@ export class Loupe {
 	}
 
 	on(): void {
-		this.loupeElm.style.visibility = 'visible'
+		this.loupeElm.style.display = ''
 		this.mainView.addEventListener('mousemove', this.eventListener)
 	}
 
 	off(): void {
-		this.loupeElm.style.visibility = 'hidden'
+		this.loupeElm.style.display = 'none'
 		this.mainView.removeEventListener('mousemove', this.eventListener)
+		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
 	}
 
 	drawLoupe(rx: number, ry: number): void {
