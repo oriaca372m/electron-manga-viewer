@@ -40,6 +40,7 @@
 				top: 0;
 				width: 100%;
 				height: 100%;
+				z-index: 100;
 				display: flex;
 				justify-content: center;
 				align-items: center;
@@ -69,18 +70,6 @@
 				align-items: center;
 			}
 
-			@keyframes aaa {
-				0% {
-					background-color: #0000;
-					backdrop-filter: blur(0px);
-				}
-
-				100% {
-					background-color: #0005;
-					backdrop-filter: blur(12px);
-				}
-			}
-
 			#thumbnails-body canvas {
 			}
 
@@ -91,6 +80,32 @@
 				top: 0;
 				left: 0;
 				pointer-events: none;
+			}
+
+			#click-judge {
+				position: absolute;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				display: grid;
+				grid-template: "left center right" 100% / 1fr 1fr 1fr
+			}
+
+			#click-judge div {
+				border: solid;
+			}
+
+			#click-judge-left {
+				grid-area: left;
+			}
+
+			#click-judge-center {
+				grid-area: center;
+			}
+
+			#click-judge-right {
+				grid-area: right;
 			}
 		</style>
 	</head>
@@ -103,6 +118,11 @@
 		<div id="main-view">
 			<div id="thumbnails">
 				<div id="thumbnails-body"></div>
+			</div>
+			<div id="click-judge">
+				<div id="click-judge-left"></div>
+				<div id="click-judge-center"></div>
+				<div id="click-judge-right"></div>
 			</div>
 			<canvas id="view"></canvas>
 			<canvas id="loupe"></canvas>

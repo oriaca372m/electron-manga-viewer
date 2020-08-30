@@ -47,7 +47,14 @@ async function main() {
 
 	genThumbnails(mangaView)
 
+	const judge = document.getElementById('click-judge') as HTMLDivElement
+
 	document.getElementById('prev')?.addEventListener('click', () => {
+		loupe.off()
+		void mangaView.prevPage()
+	})
+
+	document.getElementById('click-judge-right')?.addEventListener('click', () => {
 		loupe.off()
 		void mangaView.prevPage()
 	})
@@ -57,7 +64,12 @@ async function main() {
 		void mangaView.nextPage()
 	})
 
-	document.getElementById('view')?.addEventListener('wheel', (e) => {
+	document.getElementById('click-judge-left')?.addEventListener('click', () => {
+		loupe.off()
+		void mangaView.nextPage()
+	})
+
+	judge.addEventListener('wheel', (e) => {
 		e.preventDefault()
 		loupe.off()
 
@@ -77,14 +89,17 @@ async function main() {
 		thumbnails.classList.toggle('thumbnails-visible')
 	})
 
-	const canvas = document.getElementById('view') as HTMLCanvasElement
+	document.getElementById('click-judge-center')?.addEventListener('click', () => {
+		const thumbnails = document.getElementById('thumbnails') as HTMLDivElement
+		thumbnails.classList.toggle('thumbnails-visible')
+	})
 
-	canvas.addEventListener('mousedown', (e) => {
+	judge.addEventListener('mousedown', (e) => {
 		loupe.on()
 		e.preventDefault()
 	})
 
-	canvas.addEventListener('mouseup', (e) => {
+	judge.addEventListener('mouseup', (e) => {
 		loupe.off()
 		e.preventDefault()
 	})

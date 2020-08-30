@@ -30,6 +30,7 @@ export class Loupe {
 	// とりあえず
 	private mainView = document.getElementById('main-view') as HTMLDivElement
 	private canvas = document.getElementById('view') as HTMLCanvasElement
+	private eventListener: (e: MouseEvent) => void
 
 	constructor(private loupeElm: HTMLCanvasElement) {
 		const ctx = this.loupeElm.getContext('2d')
@@ -38,21 +39,24 @@ export class Loupe {
 		}
 		this.ctx = ctx
 
-		this.off()
-		this.canvas.addEventListener('mousemove', (e) => {
+		this.eventListener = (e) => {
 			const viewRect = this.mainView.getBoundingClientRect()
 			const rx = e.clientX - viewRect.x
 			const ry = e.clientY - viewRect.y
 			this.drawLoupe(rx, ry)
-		})
+		}
+
+		this.off()
 	}
 
 	on(): void {
 		this.loupeElm.style.visibility = 'visible'
+		this.mainView.addEventListener('mousemove', this.eventListener)
 	}
 
 	off(): void {
 		this.loupeElm.style.visibility = 'hidden'
+		this.mainView.removeEventListener('mousemove', this.eventListener)
 	}
 
 	drawLoupe(rx: number, ry: number): void {

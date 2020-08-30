@@ -214,7 +214,6 @@ export class MangaView {
 
 		this.pageDrawer = new PageDrawer(this.mangaFile, this.canvas, this.ctx, cpage)
 		const multiPaged = await this.shouldDrawInMultiPage(cpage)
-		console.log(multiPaged)
 		this.isCurrentlyMultipaged = multiPaged
 
 		await this.pageDrawer.draw(multiPaged)
