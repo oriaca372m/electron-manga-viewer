@@ -90,14 +90,17 @@ class CacheManager {
 	}
 }
 
-export class MangaFile {
+export interface IMangaLoader {
+	init(): Promise<void>
+	getPageImageBitmap(page: number): Promise<ImageBitmap>
+	length(): number
+}
+
+export class ZipMangaLoader implements IMangaLoader {
 	private zip: JSZip = new JSZip()
 	private pages: string[] = []
-	private cache: CacheManager
 
-	constructor(private path: string) {
-		this.cache = new CacheManager((page) => this.getPageImageBitmapFromZip(page))
-	}
+	constructor(private path: string) {}
 
 	async init(): Promise<void> {
 		const buf = await fs.readFile(this.path)
@@ -110,20 +113,7 @@ export class MangaFile {
 		})
 	}
 
-	async getPageImageBitmap(page: number, useCache = true): Promise<ImageBitmap> {
-		if (useCache) {
-			return await createImageBitmap(await this.cache.getContent(page))
-		}
-
-		return await this.getPageImageBitmapFromZip(page)
-	}
-
-	async getSize(page: number): Promise<{ width: number; height: number }> {
-		const bitmap = await this.cache.getContent(page)
-		return { width: bitmap.width, height: bitmap.height }
-	}
-
-	private async getPageImageBitmapFromZip(page: number): Promise<ImageBitmap> {
+	async getPageImageBitmap(page: number): Promise<ImageBitmap> {
 		const imgbuffer = await this.zip.file(this.pages[page])?.async('blob')
 		if (!imgbuffer) {
 			throw 'invalid page id'
@@ -132,12 +122,41 @@ export class MangaFile {
 		return await createImageBitmap(imgbuffer)
 	}
 
+	length(): number {
+		return this.pages.length
+	}
+}
+
+export class MangaFile {
+	private cache: CacheManager
+
+	constructor(private loader: IMangaLoader) {
+		this.cache = new CacheManager((page) => this.loader.getPageImageBitmap(page))
+	}
+
+	async init(): Promise<void> {
+		await this.loader.init()
+	}
+
+	async getPageImageBitmap(page: number, useCache = true): Promise<ImageBitmap> {
+		if (useCache) {
+			return await createImageBitmap(await this.cache.getContent(page))
+		}
+
+		return await this.loader.getPageImageBitmap(page)
+	}
+
+	async getSize(page: number): Promise<{ width: number; height: number }> {
+		const bitmap = await this.cache.getContent(page)
+		return { width: bitmap.width, height: bitmap.height }
+	}
+
 	preFetch(page: number): void {
 		this.cache.preFetch(page)
 	}
 
 	get length(): number {
-		return this.pages.length
+		return this.loader.length()
 	}
 }
 

@@ -1,4 +1,4 @@
-import { MangaFile, MangaView } from './manga'
+import { ZipMangaLoader, MangaFile, MangaView } from './manga'
 import { Loupe } from './loupe'
 
 function genThumbnails(mangaView: MangaView) {
@@ -36,7 +36,8 @@ function genThumbnails(mangaView: MangaView) {
 }
 
 async function main() {
-	const mangaFile = new MangaFile('./test-res/01s.zip')
+	const loader = new ZipMangaLoader('./test-res/01s.zip')
+	const mangaFile = new MangaFile(loader)
 	await mangaFile.init()
 	const mangaView = new MangaView(mangaFile)
 
