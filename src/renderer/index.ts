@@ -1,52 +1,21 @@
 import { ZipMangaLoader, MangaFile, MangaView } from './manga'
 import { Loupe } from './loupe'
-
-function genThumbnails(mangaView: MangaView) {
-	const mangaFile = mangaView.mangaFile
-
-	const thumbnails = document.getElementById('thumbnails-body')
-	const setThumbnail = async (page: number, canvas: HTMLCanvasElement) => {
-		const ni = await mangaFile.getPageImageBitmap(page, false)
-		const ctx = canvas.getContext('2d')
-
-		if (ni.height < ni.width) {
-			const h = 300 * (ni.height / ni.width)
-			canvas.height = h
-			ctx?.drawImage(ni, 0, 0, ni.width, ni.height, 0, 0, 300, h)
-		} else {
-			const w = 300 * (ni.width / ni.height)
-			canvas.width = w
-			ctx?.drawImage(ni, 0, 0, ni.width, ni.height, 0, 0, w, 300)
-		}
-		ni.close()
-		canvas.scrollIntoView()
-	}
-
-	for (let i = 0; i < mangaFile.length; i++) {
-		const canvas = document.createElement('canvas')
-		canvas.height = 300
-		canvas.width = 300
-		thumbnails?.appendChild(canvas)
-
-		canvas.addEventListener('click', () => {
-			void mangaView.moveToPage(i)
-		})
-		void setThumbnail(i, canvas)
-	}
-}
+import { genThumbnails, Thumbnails } from './thumbnail'
 
 async function main() {
 	const loader = new ZipMangaLoader('./test-res/09.zip')
 	const mangaFile = new MangaFile(loader)
 	await mangaFile.init()
-	const mangaView = new MangaView(mangaFile)
+
+	const thumbnails = new Thumbnails(mangaFile)
+	const mangaView = new MangaView(mangaFile, thumbnails)
 
 	await mangaView.moveToPage(0)
 
 	const loupeElm = document.getElementById('loupe') as HTMLCanvasElement
 	const loupe = new Loupe(loupeElm)
 
-	genThumbnails(mangaView)
+	void genThumbnails(mangaView)
 
 	const judge = document.getElementById('click-judge') as HTMLDivElement
 

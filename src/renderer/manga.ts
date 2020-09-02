@@ -1,5 +1,6 @@
 import JSZip from 'jszip'
 import { promises as fs } from 'fs'
+import { Thumbnails } from './thumbnail'
 
 type FinishHandler = (bitmap: ImageBitmap) => void
 
@@ -215,7 +216,7 @@ export class MangaView {
 	private pageDrawer: PageDrawer | undefined
 	private drawedPage: number | undefined
 
-	constructor(private mangaFile_: MangaFile) {
+	constructor(private mangaFile_: MangaFile, private thumbnails_: Thumbnails) {
 		this.canvas = document.getElementById('view') as HTMLCanvasElement
 		const ctx = this.canvas.getContext('2d')
 		if (!ctx) {
@@ -305,5 +306,9 @@ export class MangaView {
 
 	get mangaFile(): MangaFile {
 		return this.mangaFile_
+	}
+
+	get thumbnails(): Thumbnails {
+		return this.thumbnails_
 	}
 }
