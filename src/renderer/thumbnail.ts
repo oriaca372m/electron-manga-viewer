@@ -157,7 +157,8 @@ export class Thumbnails {
 export async function genThumbnails(mangaView: MangaView): Promise<void> {
 	const mangaFile = mangaView.mangaFile
 	const thumbnails = mangaView.thumbnails
-	const thumbnailsElm = document.getElementById('thumbnails-body')
+	const thumbnailsElm = document.getElementById('thumbnails-body') as HTMLDivElement
+	thumbnailsElm.innerHTML = ''
 
 	const canvases: HTMLCanvasElement[] = []
 	for (let i = 0; i < mangaFile.length; i++) {
