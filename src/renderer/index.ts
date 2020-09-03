@@ -80,6 +80,11 @@ async function main() {
 		thumbnails.classList.toggle('thumbnails-visible')
 	})
 
+	document.getElementById('thumbnails')?.addEventListener('click', () => {
+		const thumbnails = document.getElementById('thumbnails') as HTMLDivElement
+		thumbnails.classList.remove('thumbnails-visible')
+	})
+
 	document.getElementById('load-file')?.addEventListener('click', () => {
 		void (async () => {
 			const res = await dialog.showOpenDialog(remote.getCurrentWindow(), {
