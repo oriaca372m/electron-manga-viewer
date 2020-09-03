@@ -1,6 +1,7 @@
 import JSZip from 'jszip'
 import { promises as fs } from 'fs'
 import { Thumbnails } from './thumbnail'
+import * as path from 'path'
 
 type FinishHandler = (bitmap: ImageBitmap) => void
 
@@ -121,6 +122,27 @@ export class ZipMangaLoader implements IMangaLoader {
 		}
 
 		return await createImageBitmap(imgbuffer)
+	}
+
+	length(): number {
+		return this.pages.length
+	}
+}
+
+export class DirectoryMangaLoader implements IMangaLoader {
+	private pages: string[] = []
+
+	constructor(private path: string) {}
+
+	async init(): Promise<void> {
+		const list = await fs.readdir(this.path)
+		this.pages = list
+		console.log(list)
+	}
+
+	async getPageImageBitmap(page: number): Promise<ImageBitmap> {
+		const imgbuffer = await fs.readFile(path.resolve(this.path, this.pages[page]))
+		return await createImageBitmap(new Blob([imgbuffer]))
 	}
 
 	length(): number {

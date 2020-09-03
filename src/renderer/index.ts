@@ -1,12 +1,20 @@
-import { ZipMangaLoader, MangaFile, MangaView } from './manga'
+import { IMangaLoader, ZipMangaLoader, DirectoryMangaLoader, MangaFile, MangaView } from './manga'
 import { Loupe } from './loupe'
 import { genThumbnails, Thumbnails } from './thumbnail'
 import { remote } from 'electron'
+import { promises as fs } from 'fs'
 
 const dialog = remote.dialog
 
 async function loadManga(path: string): Promise<MangaView> {
-	const loader = new ZipMangaLoader(path)
+	let loader: IMangaLoader
+
+	if ((await fs.stat(path)).isDirectory()) {
+		loader = new DirectoryMangaLoader(path)
+	} else {
+		loader = new ZipMangaLoader(path)
+	}
+
 	const mangaFile = new MangaFile(loader)
 	await mangaFile.init()
 
