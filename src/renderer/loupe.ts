@@ -92,12 +92,12 @@ export class Loupe {
 			const x = minmax(
 				(rx - rendered.x) * r - w / zoomMultiplier / 2,
 				0,
-				canvas.width - w / 2
+				canvas.width - w / zoomMultiplier
 			)
 			const y = minmax(
 				(ry - rendered.y) * r - h / zoomMultiplier / 2,
 				0,
-				canvas.height - h / 2
+				canvas.height - h / zoomMultiplier
 			)
 
 			this.ctx.drawImage(canvas, x, y, w / zoomMultiplier, h / zoomMultiplier, 0, 0, w, h)
