@@ -44,17 +44,14 @@
 				display: flex;
 				justify-content: center;
 				align-items: center;
+
 				visibility: hidden;
-				background-color: #0008;
-				backdrop-filter: blur(0px);
-				opacity: 0;
-				transition: backdrop-filter 1.5s, visibility 1.5s, opacity 1.5s;
 			}
 
 			#thumbnails.thumbnails-visible {
 				visibility: visible;
 				backdrop-filter: blur(12px);
-				opacity: 1;
+				background-color: #0008;
 			}
 
 			#thumbnails-body {
