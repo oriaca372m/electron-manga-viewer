@@ -1,5 +1,11 @@
 /test-res
 
+/release-builds
+/pkgbuild/*
+!/pkgbuild/PKGBUILD
+!/pkgbuild/electron-manga-viewer
+!/pkgbuild/electron-manga-viewer.desktop
+
 # Logs
 logs
 *.log

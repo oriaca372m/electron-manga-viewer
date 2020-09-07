@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=0.1.0
+Name=electron-manga-viewer
+Comment=A manga viewer.
+Exec=electron-manga-viewer %f
+Terminal=false
+Type=Application
+StartupNotify=true
+Categories=Graphics;Viewer;
+MimeType=application/zip;inode/directory;

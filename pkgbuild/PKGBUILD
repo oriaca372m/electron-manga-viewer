@@ -1,0 +1,26 @@
+pkgname=electron-manga-viewer
+pkgver=0.1.0
+pkgrel=1
+pkgdesc='A manga viewer.'
+license=('custom')
+arch=('any')
+depends=('electron')
+makedepends=('yarn')
+source=('electron-manga-viewer' 'electron-manga-viewer.desktop')
+sha256sums=('SKIP' 'SKIP')
+
+build() {
+	cd "$srcdir/$pkgname-$pkgver"
+	rm -rd dist
+	yarn build
+	yarn run electron-packager . --overwrite --asar --prune --ignore='pkgbuild/|test-res/' --out=release-builds
+}
+
+package() {
+	cd "$srcdir/$pkgname-$pkgver/release-builds/electron-manga-viewer-linux-x64"
+	echo "$pkgdir"
+
+	install -D "resources/app.asar" "$pkgdir/opt/electron-manga-viewer/app.asar"
+	install -D "$srcdir/electron-manga-viewer" "$pkgdir/usr/bin/electron-manga-viewer"
+	install -D "$srcdir/electron-manga-viewer.desktop" "$pkgdir/usr/share/applications/electron-manga-viewer.desktop"
+}
