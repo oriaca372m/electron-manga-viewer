@@ -26,33 +26,40 @@ async function loadManga(path: string): Promise<MangaView> {
 }
 
 async function main() {
-	let mangaView = await loadManga('./test-res/01.zip')
+	let mangaView: MangaView | undefined
+	try {
+		mangaView = await loadManga('./test-res/00001.zip')
+	} catch (e) {
+		console.error(e)
+	}
 
 	const loupeElm = document.getElementById('loupe') as HTMLCanvasElement
 	const loupe = new Loupe(loupeElm)
 
-	void genThumbnails(mangaView)
+	if (mangaView !== undefined) {
+		void genThumbnails(mangaView)
+	}
 
 	const judge = document.getElementById('click-judge') as HTMLDivElement
 
 	document.getElementById('prev')?.addEventListener('click', () => {
 		loupe.off()
-		void mangaView.prevPage()
+		void mangaView?.prevPage()
 	})
 
 	document.getElementById('click-judge-right')?.addEventListener('click', () => {
 		loupe.off()
-		void mangaView.prevPage()
+		void mangaView?.prevPage()
 	})
 
 	document.getElementById('next')?.addEventListener('click', () => {
 		loupe.off()
-		void mangaView.nextPage()
+		void mangaView?.nextPage()
 	})
 
 	document.getElementById('click-judge-left')?.addEventListener('click', () => {
 		loupe.off()
-		void mangaView.nextPage()
+		void mangaView?.nextPage()
 	})
 
 	judge.addEventListener('wheel', (e) => {
@@ -60,12 +67,12 @@ async function main() {
 		loupe.off()
 
 		if (e.deltaY < 0) {
-			void mangaView.prevPage()
+			void mangaView?.prevPage()
 			return
 		}
 
 		if (0 < e.deltaY) {
-			void mangaView.nextPage()
+			void mangaView?.nextPage()
 			return
 		}
 	})
