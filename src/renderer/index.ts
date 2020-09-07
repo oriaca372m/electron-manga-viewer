@@ -28,7 +28,10 @@ async function loadManga(path: string): Promise<MangaView> {
 async function main() {
 	let mangaView: MangaView | undefined
 	try {
-		mangaView = await loadManga('./test-res/00001.zip')
+		const argv = remote.process.argv
+		if (2 < argv.length) {
+			mangaView = await loadManga(argv[2])
+		}
 	} catch (e) {
 		console.error(e)
 	}

@@ -1,2 +1,2 @@
 #!/bin/sh
-electron /opt/electron-manga-viewer/app.asar
+electron /opt/electron-manga-viewer/app.asar "$@"

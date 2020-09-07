@@ -5,7 +5,7 @@
   "license": "Zlib",
   "scripts": {
     "build": "webpack",
-    "start": "webpack && electron .",
+    "start": "webpack && electron . test-res/01.zip",
     "watch": "webpack --watch"
   },
   "devDependencies": {
