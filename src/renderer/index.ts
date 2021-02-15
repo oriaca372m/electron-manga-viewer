@@ -65,6 +65,15 @@ async function main() {
 		void mangaView?.nextPage()
 	})
 
+	document.addEventListener('keydown', (e) => {
+		if (e.code === 'ArrowLeft') {
+			void mangaView?.nextPage()
+		}
+		if (e.code === 'ArrowRight') {
+			void mangaView?.prevPage()
+		}
+	})
+
 	judge.addEventListener('wheel', (e) => {
 		e.preventDefault()
 		loupe.off()
