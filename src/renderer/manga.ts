@@ -1,7 +1,7 @@
-import JSZip from 'jszip'
 import { promises as fs } from 'fs'
 import { Thumbnails } from './thumbnail'
 import * as path from 'path'
+import { ZipLoader, ZipEntry } from '@oriaca372m/seekable-unzipper'
 
 type FinishHandler = (bitmap: ImageBitmap) => void
 
@@ -99,29 +99,40 @@ export interface IMangaLoader {
 }
 
 export class ZipMangaLoader implements IMangaLoader {
-	private zip: JSZip = new JSZip()
-	private pages: string[] = []
+	private zip!: ZipLoader
+	private pages: ZipEntry[] = []
 
 	constructor(private path: string) {}
 
 	async init(): Promise<void> {
-		const buf = await fs.readFile(this.path)
-		await this.zip.loadAsync(buf)
+		this.zip = await ZipLoader.fromFile(this.path)
+		await this.zip.init()
 
-		this.zip.forEach((path, entry) => {
-			if (!entry.dir) {
-				this.pages.push(path)
-			}
-		})
+		this.zip.entries
+			.filter((x) => /\.(png|webp|jpe?g)$/i.test(x.fileName))
+			.sort((a, b) => {
+				if (a.fileName < b.fileName) {
+					return -1
+				}
+
+				if (a.fileName > b.fileName) {
+					return 1
+				}
+
+				return 0
+			})
+			.forEach((x) => {
+				this.pages.push(x)
+			})
 	}
 
 	async getPageImageBitmap(page: number): Promise<ImageBitmap> {
-		const imgbuffer = await this.zip.file(this.pages[page])?.async('blob')
+		const imgbuffer = await this.pages[page]?.getContentBuffer()
 		if (!imgbuffer) {
 			throw 'invalid page id'
 		}
 
-		return await createImageBitmap(imgbuffer)
+		return await createImageBitmap(new Blob([imgbuffer]))
 	}
 
 	length(): number {

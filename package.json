@@ -25,6 +25,7 @@
     "webpack-cli": "^4.5.0"
   },
   "dependencies": {
+    "@oriaca372m/seekable-unzipper": "^0.1.3",
     "electron": "^11.2.3",
     "jszip": "^3.6.0"
   }

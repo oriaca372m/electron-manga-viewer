@@ -81,6 +81,11 @@
     "@nodelib/fs.scandir" "2.1.4"
     fastq "^1.6.0"
 
+"@oriaca372m/seekable-unzipper@^0.1.3":
+  version "0.1.3"
+  resolved "https://registry.yarnpkg.com/@oriaca372m/seekable-unzipper/-/seekable-unzipper-0.1.3.tgz#a68505cf596446e87a49f7f3f69e145ec2ab1c29"
+  integrity sha512-+NW7FrdHAQIhqCQwiG/PMY1jjs8MOjs6wqaCBhapDrX5BQknnBcUGEyS1/yqb/KA1aeHqtYjbrt0WSi60yJxXA==
+
 "@sindresorhus/is@^0.14.0":
   version "0.14.0"
   resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-0.14.0.tgz#9fb3a3cf3132328151f353de4632e01e52102bea"
