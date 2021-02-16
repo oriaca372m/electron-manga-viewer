@@ -94,6 +94,7 @@ class CacheManager {
 
 export interface IMangaLoader {
 	init(): Promise<void>
+	finalize(): Promise<void>
 	getPageImageBitmap(page: number): Promise<ImageBitmap>
 	length(): number
 }
@@ -126,6 +127,10 @@ export class ZipMangaLoader implements IMangaLoader {
 			})
 	}
 
+	async finalize(): Promise<void> {
+		await this.zip.finalize()
+	}
+
 	async getPageImageBitmap(page: number): Promise<ImageBitmap> {
 		const imgbuffer = await this.pages[page]?.getContentBuffer()
 		if (!imgbuffer) {
@@ -149,6 +154,10 @@ export class DirectoryMangaLoader implements IMangaLoader {
 		const list = await fs.readdir(this.path)
 		this.pages = list
 		console.log(list)
+	}
+
+	finalize(): Promise<void> {
+		return Promise.resolve()
 	}
 
 	async getPageImageBitmap(page: number): Promise<ImageBitmap> {
