@@ -101,6 +101,10 @@ export class MangaFile {
 		await this.loader.init()
 	}
 
+	async finalize(): Promise<void> {
+		await this.loader.finalize()
+	}
+
 	async getPageImageBitmap(page: number, useCache = true): Promise<ImageBitmap> {
 		if (useCache) {
 			return await createImageBitmap(await this.cache.getContent(page))
@@ -272,5 +276,10 @@ export class MangaView {
 
 	get thumbnails(): Thumbnails {
 		return this.thumbnails_
+	}
+
+	async finalize(): Promise<void> {
+		await this.thumbnails_.finalize()
+		await this.mangaFile_.finalize()
 	}
 }

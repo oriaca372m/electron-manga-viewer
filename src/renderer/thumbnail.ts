@@ -53,6 +53,22 @@ class WorkQueue {
 		return this.works.shift()
 	}
 
+	cancel(): Promise<void> {
+		if (this.works.length === 0) {
+			return Promise.resolve()
+		}
+
+		this.works.splice(0)
+		return new Promise((resolve) => {
+			const id = window.setInterval(() => {
+				if (this.workers.every((x) => !x.isRunning)) {
+					window.clearInterval(id)
+					resolve()
+				}
+			}, 50)
+		})
+	}
+
 	addWorker(): Worker {
 		const worker = new Worker(this)
 		this.workers.push(worker)
@@ -67,6 +83,7 @@ export class Thumbnails {
 	private finishedPageLoadHandlers: ((page: number, thumbnail: Thumbnail) => void)[] = []
 	private finishedLoadHandlers: (() => void)[] = []
 	private data: Thumbnail[] = []
+	private readonly _queue = new WorkQueue()
 
 	constructor(private mangaFile: MangaFile) {
 		this.addFinishedPageLoadHandler((page, thumbnail) => this.finished(page, thumbnail))
@@ -101,15 +118,13 @@ export class Thumbnails {
 
 	load(): Promise<void> {
 		const mangaFile = this.mangaFile
-		const queue = new WorkQueue()
 
-		queue.addWorker()
-		queue.addWorker()
-		queue.addWorker()
-		queue.addWorker()
+		for (let i = 0; i < 4; i++) {
+			this._queue.addWorker()
+		}
 
 		for (let i = 0; i < mangaFile.length; i++) {
-			queue.enqueue(async () => {
+			this._queue.enqueue(async () => {
 				const thumbnail = await this.genThumbnailPage(i)
 				this.finishedPageLoadHandlers.forEach((x) => x(i, thumbnail))
 			})
@@ -151,6 +166,10 @@ export class Thumbnails {
 
 	get isLoaded(): boolean {
 		return this.loaded
+	}
+
+	async finalize(): Promise<void> {
+		await this._queue.cancel()
 	}
 }
 

@@ -115,6 +115,7 @@ async function main() {
 			const path = res.filePaths[0]
 			if (path !== undefined) {
 				console.log(path)
+				await mangaView?.finalize()
 				mangaView = await loadManga(path)
 				await genThumbnails(mangaView)
 			}
@@ -135,6 +136,7 @@ async function main() {
 
 		void (async () => {
 			if (path !== undefined) {
+				await mangaView?.finalize()
 				mangaView = await loadManga(path)
 				await genThumbnails(mangaView)
 			}
