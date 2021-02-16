@@ -1,4 +1,5 @@
-import { IMangaLoader, ZipMangaLoader, DirectoryMangaLoader, MangaFile, MangaView } from './manga'
+import { IMangaLoader, ZipMangaLoader, DirectoryMangaLoader } from './manga-loader'
+import { MangaFile, MangaView } from './manga'
 import { Loupe } from './loupe'
 import { genThumbnails, Thumbnails } from './thumbnail'
 import { remote } from 'electron'
