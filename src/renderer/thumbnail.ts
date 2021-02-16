@@ -1,12 +1,20 @@
 import { MangaView, MangaFile } from './manga'
-import JSZip from 'jszip'
 import { promises as fs } from 'fs'
+import { encode, decode } from '@msgpack/msgpack'
 
 export type Size = { width: number; height: number }
 
 export type Thumbnail = {
 	originalSize: Size
-	image: Blob
+	image: Uint8Array
+}
+
+async function blobToUint8Array(blob: Blob): Promise<Uint8Array> {
+	return new Uint8Array(await blob.arrayBuffer())
+}
+
+function uint8ArrayToBlob(array: Uint8Array): Blob {
+	return new Blob([array])
 }
 
 class Worker {
@@ -114,9 +122,10 @@ export class Thumbnails {
 		}
 		ni.close()
 
+		const blob = await canvas.convertToBlob({ type: 'image/jpeg', quality: 85 })
 		return {
 			originalSize: { width: ni.width, height: ni.height },
-			image: await canvas.convertToBlob({ type: 'image/jpeg', quality: 85 }),
+			image: await blobToUint8Array(blob),
 		}
 	}
 
@@ -136,21 +145,11 @@ export class Thumbnails {
 	}
 
 	async loadFromCache(path: string): Promise<void> {
-		const zip = new JSZip()
-		await zip.loadAsync(await fs.readFile(path))
+		const buf = await fs.readFile(path)
+		const decoded = decode(buf) as Thumbnail[]
 
 		for (let i = 0; i < this.mangaFile.length; i++) {
-			const blob = await zip.file(`${i}.jpg`)?.async('blob')
-
-			if (blob === undefined) {
-				throw 'invalid cache file'
-			}
-
-			const thumbnail = {
-				image: blob,
-				originalSize: { width: 300, height: 300 },
-			}
-			this.finished(i, thumbnail)
+			this.finished(i, decoded[i])
 		}
 	}
 
@@ -193,13 +192,10 @@ export class Thumbnails {
 	}
 
 	async writeCache(path: string): Promise<void> {
-		const zip = new JSZip()
-
-		for (let i = 0; i < this.mangaFile.length; i++) {
-			zip.file(`${i}.jpg`, this.data[i].image, { compression: 'STORE' })
+		if (!this.isLoaded) {
+			throw new Error('Thumbnail generation is not complete!')
 		}
-
-		const buf = await zip.generateAsync({ type: 'nodebuffer' })
+		const buf = encode(this.data)
 		await fs.writeFile(path, buf)
 	}
 }
@@ -233,7 +229,7 @@ export function genThumbnails(mangaView: MangaView): void {
 	thumbnails.addFinishedPageLoadHandler((page, thumbnail) => {
 		void (async () => {
 			const canvas = canvases[page]
-			const img = await createImageBitmap(thumbnail.image)
+			const img = await createImageBitmap(uint8ArrayToBlob(thumbnail.image))
 			canvas.width = img.width
 			canvas.height = img.height
 			const br = canvas.getContext('bitmaprenderer')
@@ -244,7 +240,7 @@ export function genThumbnails(mangaView: MangaView): void {
 	for (const { page, thumbnail } of alreadyLoadedThumbnails) {
 		void (async () => {
 			const canvas = canvases[page]
-			const img = await createImageBitmap(thumbnail.image)
+			const img = await createImageBitmap(uint8ArrayToBlob(thumbnail.image))
 			canvas.width = img.width
 			canvas.height = img.height
 			const br = canvas.getContext('bitmaprenderer')

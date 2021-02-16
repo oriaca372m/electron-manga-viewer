@@ -4,6 +4,7 @@ import { Loupe } from './loupe'
 import { genThumbnails, Thumbnails } from './thumbnail'
 import { remote } from 'electron'
 import { promises as fs } from 'fs'
+import { resolve } from 'path'
 
 const dialog = remote.dialog
 
@@ -20,9 +21,12 @@ async function loadManga(path: string): Promise<MangaView> {
 	const mangaFile = new MangaFile(loader)
 	const thumbnails = new Thumbnails(mangaFile)
 
+	const cacheDir = resolve(remote.app.getPath('cache'), 'electron-manga-viewer')
+	await fs.mkdir(cacheDir, { recursive: true })
+
 	const digest = loader.digest()
-	const cachePath = `./c-${digest}.zip`
-	console.log(digest)
+	const cachePath = resolve(cacheDir, `${digest}.cache`)
+	console.log(cachePath)
 
 	let cached = false
 
