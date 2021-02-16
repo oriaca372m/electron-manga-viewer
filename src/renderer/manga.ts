@@ -97,10 +97,6 @@ export class MangaFile {
 		this.cache = new CacheManager((page) => this.loader.getPageImageBitmap(page))
 	}
 
-	async init(): Promise<void> {
-		await this.loader.init()
-	}
-
 	async finalize(): Promise<void> {
 		await this.loader.finalize()
 	}
@@ -124,6 +120,10 @@ export class MangaFile {
 
 	get length(): number {
 		return this.loader.length()
+	}
+
+	get mangaLoader(): IMangaLoader {
+		return this.loader
 	}
 }
 

@@ -16,10 +16,36 @@ async function loadManga(path: string): Promise<MangaView> {
 		loader = new ZipMangaLoader(path)
 	}
 
+	await loader.init()
 	const mangaFile = new MangaFile(loader)
-	await mangaFile.init()
-
 	const thumbnails = new Thumbnails(mangaFile)
+
+	const digest = loader.digest()
+	const cachePath = `./c-${digest}.zip`
+	console.log(digest)
+
+	let cached = false
+
+	try {
+		cached = (await fs.stat(cachePath)).isFile()
+	} catch (e) {
+		// pass
+	}
+
+	if (cached) {
+		// there'is a cache
+		console.log('cache found!')
+		void thumbnails.loadFromCache(cachePath)
+	} else {
+		thumbnails.addFinishedLoadHandler(() => {
+			void (async () => {
+				await thumbnails.writeCache(cachePath)
+				console.log('write finished')
+			})()
+		})
+		void thumbnails.load()
+	}
+
 	const mangaView = new MangaView(mangaFile, thumbnails)
 
 	await mangaView.moveToPage(0)
@@ -41,7 +67,7 @@ async function main() {
 	const loupe = new Loupe(loupeElm)
 
 	if (mangaView !== undefined) {
-		void genThumbnails(mangaView)
+		genThumbnails(mangaView)
 	}
 
 	const judge = document.getElementById('click-judge') as HTMLDivElement
@@ -117,7 +143,7 @@ async function main() {
 				console.log(path)
 				await mangaView?.finalize()
 				mangaView = await loadManga(path)
-				await genThumbnails(mangaView)
+				genThumbnails(mangaView)
 			}
 		})()
 	})
@@ -138,7 +164,7 @@ async function main() {
 			if (path !== undefined) {
 				await mangaView?.finalize()
 				mangaView = await loadManga(path)
-				await genThumbnails(mangaView)
+				genThumbnails(mangaView)
 			}
 		})()
 	})

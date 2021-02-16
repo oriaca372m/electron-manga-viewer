@@ -7,7 +7,7 @@
     "build": "webpack",
     "start": "webpack && electron . test-res/01.zip",
     "watch": "webpack --watch",
-    "lint": "eslint src/**"
+    "lint": "eslint --fix src/**"
   },
   "devDependencies": {
     "@types/node": "^14.14.28",

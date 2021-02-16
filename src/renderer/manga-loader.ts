@@ -1,12 +1,18 @@
 import { ZipLoader, ZipEntry } from '@oriaca372m/seekable-unzipper'
 import { promises as fs } from 'fs'
 import * as path from 'path'
+import crypto from 'crypto'
+
+function sha256sum(str: string): string {
+	return crypto.createHash('sha256').update(str, 'utf-8').digest('hex')
+}
 
 export interface IMangaLoader {
 	init(): Promise<void>
 	finalize(): Promise<void>
 	getPageImageBitmap(page: number): Promise<ImageBitmap>
 	length(): number
+	digest(): string
 }
 
 export class ZipMangaLoader implements IMangaLoader {
@@ -53,6 +59,16 @@ export class ZipMangaLoader implements IMangaLoader {
 	length(): number {
 		return this.pages.length
 	}
+
+	digest(): string {
+		return sha256sum(
+			JSON.stringify({
+				type: 'zip',
+				path: path.resolve(this.path),
+				length: this.length(),
+			})
+		)
+	}
 }
 
 export class DirectoryMangaLoader implements IMangaLoader {
@@ -77,5 +93,15 @@ export class DirectoryMangaLoader implements IMangaLoader {
 
 	length(): number {
 		return this.pages.length
+	}
+
+	digest(): string {
+		return sha256sum(
+			JSON.stringify({
+				type: 'directory',
+				path: path.resolve(this.path),
+				length: this.length(),
+			})
+		)
 	}
 }
