@@ -1,6 +1,6 @@
 import { ZipLoader, ZipEntry } from '@oriaca372m/seekable-unzipper'
 import { promises as fs } from 'fs'
-import * as path from 'path'
+import { resolve } from 'path'
 import crypto from 'crypto'
 
 function sha256sum(str: string): string {
@@ -20,10 +20,16 @@ export interface IMangaLoader {
 export class ZipMangaLoader implements IMangaLoader {
 	private zip!: ZipLoader
 	private pages: ZipEntry[] = []
+	private path: string
+	private mtime!: string
 
-	constructor(private path: string) {}
+	constructor(path: string) {
+		this.path = resolve(path)
+	}
 
 	async init(): Promise<void> {
+		this.mtime = (await fs.stat(this.path)).mtime.toISOString()
+
 		this.zip = await ZipLoader.fromFile(this.path)
 		await this.zip.init()
 
@@ -66,8 +72,9 @@ export class ZipMangaLoader implements IMangaLoader {
 		return sha256sum(
 			JSON.stringify({
 				type: 'zip',
-				path: path.resolve(this.path),
+				path: this.path,
 				length: this.length(),
+				lastUpdated: this.mtime,
 			})
 		)
 	}
@@ -75,10 +82,16 @@ export class ZipMangaLoader implements IMangaLoader {
 
 export class DirectoryMangaLoader implements IMangaLoader {
 	private pages: string[] = []
+	private path: string
+	private mtime!: string
 
-	constructor(private path: string) {}
+	constructor(path: string) {
+		this.path = resolve(path)
+	}
 
 	async init(): Promise<void> {
+		this.mtime = (await fs.stat(this.path)).mtime.toISOString()
+
 		const list = await fs.readdir(this.path)
 		this.pages = list.filter((x) => validFilenamePattern.test(x)).sort()
 		console.log(list)
@@ -89,7 +102,7 @@ export class DirectoryMangaLoader implements IMangaLoader {
 	}
 
 	async getPageImageBitmap(page: number): Promise<ImageBitmap> {
-		const imgbuffer = await fs.readFile(path.resolve(this.path, this.pages[page]))
+		const imgbuffer = await fs.readFile(resolve(this.path, this.pages[page]))
 		return await createImageBitmap(new Blob([imgbuffer]))
 	}
 
@@ -101,8 +114,9 @@ export class DirectoryMangaLoader implements IMangaLoader {
 		return sha256sum(
 			JSON.stringify({
 				type: 'directory',
-				path: path.resolve(this.path),
+				path: this.path,
 				length: this.length(),
+				lastUpdated: this.mtime,
 			})
 		)
 	}
