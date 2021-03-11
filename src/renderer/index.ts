@@ -76,32 +76,32 @@ async function main() {
 
 	const judge = document.getElementById('click-judge') as HTMLDivElement
 
-	document.getElementById('prev')?.addEventListener('click', () => {
+	document.getElementById('prev')?.addEventListener('click', (e) => {
 		loupe.off()
-		void mangaView?.prevPage()
+		void mangaView?.prevPage(e.shiftKey)
 	})
 
-	document.getElementById('click-judge-right')?.addEventListener('click', () => {
+	document.getElementById('click-judge-right')?.addEventListener('click', (e) => {
 		loupe.off()
-		void mangaView?.prevPage()
+		void mangaView?.prevPage(e.shiftKey)
 	})
 
-	document.getElementById('next')?.addEventListener('click', () => {
+	document.getElementById('next')?.addEventListener('click', (e) => {
 		loupe.off()
-		void mangaView?.nextPage()
+		void mangaView?.nextPage(e.shiftKey)
 	})
 
-	document.getElementById('click-judge-left')?.addEventListener('click', () => {
+	document.getElementById('click-judge-left')?.addEventListener('click', (e) => {
 		loupe.off()
-		void mangaView?.nextPage()
+		void mangaView?.nextPage(e.shiftKey)
 	})
 
 	document.addEventListener('keydown', (e) => {
 		if (e.code === 'ArrowLeft') {
-			void mangaView?.nextPage()
+			void mangaView?.nextPage(e.shiftKey)
 		}
 		if (e.code === 'ArrowRight') {
-			void mangaView?.prevPage()
+			void mangaView?.prevPage(e.shiftKey)
 		}
 	})
 
@@ -110,12 +110,12 @@ async function main() {
 		loupe.off()
 
 		if (e.deltaY < 0) {
-			void mangaView?.prevPage()
+			void mangaView?.prevPage(e.shiftKey)
 			return
 		}
 
 		if (0 < e.deltaY) {
-			void mangaView?.nextPage()
+			void mangaView?.nextPage(e.shiftKey)
 			return
 		}
 	})

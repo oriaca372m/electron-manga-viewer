@@ -241,8 +241,8 @@ export class MangaView {
 		return false
 	}
 
-	async nextPage(): Promise<void> {
-		const movePage = this.isCurrentlyMultipaged ? 2 : 1
+	async nextPage(forceSinglePage = false): Promise<void> {
+		const movePage = !forceSinglePage && this.isCurrentlyMultipaged ? 2 : 1
 		await this.moveToPage(
 			Math.min(
 				this.mangaFile.length - 1,
@@ -251,14 +251,14 @@ export class MangaView {
 		)
 	}
 
-	async prevPage(): Promise<void> {
+	async prevPage(forceSinglePage = false): Promise<void> {
 		const page = this.currentPage_
 		if (!page) {
 			await this.moveToPage(0)
 			return
 		}
 
-		if (0 <= page - 2 && (await this.shouldDrawInMultiPage(page - 2))) {
+		if (!forceSinglePage && 0 <= page - 2 && (await this.shouldDrawInMultiPage(page - 2))) {
 			await this.moveToPage(page - 2)
 			return
 		}
