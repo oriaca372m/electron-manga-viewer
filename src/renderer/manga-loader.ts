@@ -7,6 +7,8 @@ function sha256sum(str: string): string {
 	return crypto.createHash('sha256').update(str, 'utf-8').digest('hex')
 }
 
+const validFilenamePattern = /\.(png|webp|jpe?g)$/i
+
 export interface IMangaLoader {
 	init(): Promise<void>
 	finalize(): Promise<void>
@@ -26,7 +28,7 @@ export class ZipMangaLoader implements IMangaLoader {
 		await this.zip.init()
 
 		this.zip.entries
-			.filter((x) => /\.(png|webp|jpe?g)$/i.test(x.fileName))
+			.filter((x) => validFilenamePattern.test(x.fileName))
 			.sort((a, b) => {
 				if (a.fileName < b.fileName) {
 					return -1
@@ -78,7 +80,7 @@ export class DirectoryMangaLoader implements IMangaLoader {
 
 	async init(): Promise<void> {
 		const list = await fs.readdir(this.path)
-		this.pages = list
+		this.pages = list.filter((x) => validFilenamePattern.test(x)).sort()
 		console.log(list)
 	}
 
