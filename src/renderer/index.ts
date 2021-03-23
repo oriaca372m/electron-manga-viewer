@@ -2,11 +2,9 @@ import { IMangaLoader, ZipMangaLoader, DirectoryMangaLoader } from './manga-load
 import { MangaFile, MangaView } from './manga'
 import { Loupe } from './loupe'
 import { genThumbnails, Thumbnails } from './thumbnail'
-import { remote } from 'electron'
+import { ipcRenderer } from 'electron'
 import { promises as fs } from 'fs'
 import { resolve } from 'path'
-
-const dialog = remote.dialog
 
 async function loadManga(path: string): Promise<MangaView> {
 	let loader: IMangaLoader
@@ -21,7 +19,7 @@ async function loadManga(path: string): Promise<MangaView> {
 	const mangaFile = new MangaFile(loader)
 	const thumbnails = new Thumbnails(mangaFile)
 
-	const cacheDir = resolve(remote.app.getPath('cache'), 'electron-manga-viewer')
+	const cacheDir = resolve(await ipcRenderer.invoke('get-cache-path'), 'electron-manga-viewer')
 	await fs.mkdir(cacheDir, { recursive: true })
 
 	const digest = loader.digest()
@@ -59,7 +57,7 @@ async function loadManga(path: string): Promise<MangaView> {
 async function main() {
 	let mangaView: MangaView | undefined
 	try {
-		const argv = remote.process.argv
+		const argv = (await ipcRenderer.invoke('get-args')) as string[]
 		if (2 < argv.length) {
 			mangaView = await loadManga(argv[2])
 		}
@@ -137,12 +135,8 @@ async function main() {
 
 	document.getElementById('load-file')?.addEventListener('click', () => {
 		void (async () => {
-			const res = await dialog.showOpenDialog(remote.getCurrentWindow(), {
-				properties: ['openFile'],
-				title: 'open a file',
-				filters: [{ name: 'Zip file', extensions: ['zip'] }],
-			})
-			const path = res.filePaths[0]
+			const res = (await ipcRenderer.invoke('open-manga-file-select-dialog')) as string[]
+			const path = res[0]
 			if (path !== undefined) {
 				console.log(path)
 				await mangaView?.finalize()
