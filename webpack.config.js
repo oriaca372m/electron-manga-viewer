@@ -1,14 +1,14 @@
-const path = require('path');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
+const path = require('path')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
 
 const common = {
 	resolve: {
 		extensions: ['.wasm', '.ts', '.mjs', '.js', '.json'],
 		alias: {
 			Src: path.resolve(__dirname, 'src/'),
-			Renderer: path.resolve(__dirname, 'src/renderer/')
-		}
-	}
+			Renderer: path.resolve(__dirname, 'src/renderer/'),
+		},
+	},
 }
 
 const rendererConfig = {
@@ -19,31 +19,22 @@ const rendererConfig = {
 	entry: './src/renderer/index.ts',
 	output: {
 		filename: 'index.js',
-		path: path.resolve(__dirname, 'dist', 'renderer')
+		path: path.resolve(__dirname, 'dist', 'renderer'),
 	},
 	module: {
 		rules: [
 			{
-				enforce: 'pre',
-				test: /\.(ts|js)$/,
-				exclude: /node_modules/,
-				loader: 'eslint-loader',
-				options: {
-					fix: true
-				}
-			},
-			{
 				test: /\.ts$/,
-				loader: 'ts-loader'
+				loader: 'ts-loader',
 			},
-		]
+		],
 	},
 	plugins: [
 		new HtmlWebpackPlugin({
-			template: './src/renderer/index.html.ejs'
-		})
-	]
-};
+			template: './src/renderer/index.html.ejs',
+		}),
+	],
+}
 
 const mainConfig = {
 	...common,
@@ -52,25 +43,16 @@ const mainConfig = {
 	entry: './src/main.ts',
 	output: {
 		filename: 'main.js',
-		path: path.resolve(__dirname, 'dist')
+		path: path.resolve(__dirname, 'dist'),
 	},
 	module: {
 		rules: [
 			{
-				enforce: 'pre',
-				test: /\.(ts|js)$/,
-				exclude: /node_modules/,
-				loader: 'eslint-loader',
-				options: {
-					fix: true
-				}
-			},
-			{
 				test: /\.ts$/,
-				loader: 'ts-loader'
+				loader: 'ts-loader',
 			},
-		]
-	}
-};
+		],
+	},
+}
 
-module.exports = [ rendererConfig, mainConfig ];
+module.exports = [rendererConfig, mainConfig]

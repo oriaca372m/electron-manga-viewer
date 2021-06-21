@@ -9,6 +9,12 @@ makedepends=('yarn')
 source=('electron-manga-viewer' 'electron-manga-viewer.desktop')
 sha256sums=('SKIP' 'SKIP')
 
+prepare() {
+	cd "$srcdir/$pkgname-$pkgver"
+	yarn --frozen-lockfile
+	yarn lint
+}
+
 build() {
 	cd "$srcdir/$pkgname-$pkgver"
 	rm -rd dist
