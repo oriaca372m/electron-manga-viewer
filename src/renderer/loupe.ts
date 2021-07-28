@@ -1,4 +1,5 @@
 import { renderedRect } from './coordinate'
+import { Capture } from './capture'
 
 function minmax(v: number, min: number, max: number): number {
 	if (v < min) {
@@ -20,7 +21,7 @@ export class Loupe {
 	private canvas = document.getElementById('view') as HTMLCanvasElement
 	private eventListener: (e: MouseEvent) => void
 
-	constructor(private loupeElm: HTMLCanvasElement) {
+	constructor(private loupeElm: HTMLCanvasElement, private readonly capture: Capture) {
 		const ctx = this.loupeElm.getContext('2d')
 		if (!ctx) {
 			throw new Error('canvasのコンテキストが取得できませんでした')
@@ -39,11 +40,17 @@ export class Loupe {
 
 	on(): void {
 		this.loupeElm.style.display = ''
+		if (this.capture.isEnabled) {
+			document.body.style.cursor = 'none'
+		}
+
 		this.mainView.addEventListener('mousemove', this.eventListener)
 	}
 
 	off(): void {
 		this.loupeElm.style.display = 'none'
+		document.body.style.cursor = 'auto'
+
 		this.mainView.removeEventListener('mousemove', this.eventListener)
 		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
 	}
@@ -77,18 +84,20 @@ export class Loupe {
 			this.loupeElm.width = w
 			this.loupeElm.height = h
 			const r = 1 / rendered.ratio
-			const x = minmax(
-				(rx - rendered.x) * r - w / zoomMultiplier / 2,
-				0,
-				canvas.width - w / zoomMultiplier
-			)
-			const y = minmax(
-				(ry - rendered.y) * r - h / zoomMultiplier / 2,
-				0,
-				canvas.height - h / zoomMultiplier
-			)
+
+			const x = (rx - rendered.x) * r - w / zoomMultiplier / 2
+			const y = (ry - rendered.y) * r - h / zoomMultiplier / 2
 
 			this.ctx.drawImage(canvas, x, y, w / zoomMultiplier, h / zoomMultiplier, 0, 0, w, h)
+
+			if (this.capture.isEnabled) {
+				this.ctx.beginPath()
+				this.ctx.moveTo(w / 2, 0)
+				this.ctx.lineTo(w / 2, h)
+				this.ctx.moveTo(0, h / 2)
+				this.ctx.lineTo(w, h / 2)
+				this.ctx.stroke()
+			}
 		}
 	}
 }
