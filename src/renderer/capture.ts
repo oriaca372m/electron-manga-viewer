@@ -1,5 +1,8 @@
 import { Point, renderedRect, twoPointToRect } from './coordinate'
 import { promises as fs } from 'fs'
+import dayjs from 'dayjs'
+import path from 'path'
+import os from 'os'
 
 export class Capture {
 	#p1: Point = { x: 0, y: 0 }
@@ -66,6 +69,14 @@ export class Capture {
 		this.onSelect(x, y)
 	}
 
+	#createPath(): string {
+		return path.resolve(
+			os.homedir(),
+			'Pictures/Screenshots',
+			dayjs().format('YYYY-MM-DD_HH-mm-ss.SSS[.png]')
+		)
+	}
+
 	async capture(): Promise<void> {
 		const canvas = this.canvas
 		const canvasRect = canvas.getBoundingClientRect()
@@ -94,6 +105,6 @@ export class Capture {
 		this.disable()
 
 		const blob = await img.convertToBlob({ type: 'image/png' })
-		await fs.writeFile('test.png', new Uint8Array(await blob.arrayBuffer()))
+		await fs.writeFile(this.#createPath(), new Uint8Array(await blob.arrayBuffer()))
 	}
 }
