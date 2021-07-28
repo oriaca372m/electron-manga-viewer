@@ -26,6 +26,7 @@
 				position: relative;
 				flex-grow: 1;
 				height: 0;
+				overflow: hidden;
 			}
 
 			#view {
@@ -108,6 +109,17 @@
 			#toolbar {
 				display: none;
 			}
+
+			#region-selector {
+				position: absolute;
+				pointer-events: none;
+				width: 300px;
+				height: 300px;
+				top: 0;
+				left: 0;
+				border: solid 1px black;
+				background-color: rgba(0, 0, 0, 20%)
+			}
 		</style>
 	</head>
 	<body>
@@ -127,6 +139,7 @@
 				<div id="click-judge-right"></div>
 			</div>
 			<canvas id="view"></canvas>
+			<div id="region-selector"></div>
 			<canvas id="loupe"></canvas>
 		</div>
 	</body>
