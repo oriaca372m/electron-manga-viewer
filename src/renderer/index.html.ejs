@@ -26,6 +26,7 @@
 				position: relative;
 				flex-grow: 1;
 				height: 0;
+				overflow: hidden;
 			}
 
 			#view {
@@ -77,6 +78,7 @@
 				top: 0;
 				left: 0;
 				pointer-events: none;
+				background:url("data:image/svg+xml;charset=utf-8,%3csvg version='1.1' xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 2 2' preserveAspectRatio='none'%3e%3cpath fill='%23FFFFFF' d='M-1-1v4h4v-4z'/%3e%3cpath fill='%23DCDCDC' d='M0 0H1V1H0zM1 1H2V2H1z'/%3e%3c/svg%3e");
 			}
 
 			#click-judge {
@@ -108,6 +110,17 @@
 			#toolbar {
 				display: none;
 			}
+
+			#region-selector {
+				position: absolute;
+				pointer-events: none;
+				width: 300px;
+				height: 300px;
+				top: 0;
+				left: 0;
+				border: solid 1px black;
+				background-color: rgba(0, 0, 0, 20%)
+			}
 		</style>
 	</head>
 	<body>
@@ -127,7 +140,8 @@
 				<div id="click-judge-right"></div>
 			</div>
 			<canvas id="view"></canvas>
-			<canvas id="loupe"></canvas>
+			<div id="region-selector" style="display: none;"></div>
+			<canvas id="loupe" style="display: none;"></canvas>
 		</div>
 	</body>
 </html>

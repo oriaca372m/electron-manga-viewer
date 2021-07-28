@@ -1,6 +1,7 @@
 import { IMangaLoader, ZipMangaLoader, DirectoryMangaLoader } from './manga-loader'
 import { MangaFile, MangaView } from './manga'
 import { Loupe } from './loupe'
+import { Capture } from './capture'
 import { genThumbnails, Thumbnails } from './thumbnail'
 import { ipcRenderer } from 'electron'
 import { promises as fs } from 'fs'
@@ -65,8 +66,11 @@ async function main() {
 		console.error(e)
 	}
 
+	const capture = new Capture(document.getElementById('region-selector') as HTMLDivElement)
+	capture.setup()
+
 	const loupeElm = document.getElementById('loupe') as HTMLCanvasElement
-	const loupe = new Loupe(loupeElm)
+	const loupe = new Loupe(loupeElm, capture)
 
 	if (mangaView !== undefined) {
 		genThumbnails(mangaView)
@@ -74,24 +78,34 @@ async function main() {
 
 	const judge = document.getElementById('click-judge') as HTMLDivElement
 
-	document.getElementById('prev')?.addEventListener('click', (e) => {
+	const turnPage = (shiftKey: boolean, direction: 'next' | 'prev') => {
 		loupe.off()
-		void mangaView?.prevPage(e.shiftKey)
+
+		if (capture.isEnabled) {
+			return
+		}
+
+		if (direction === 'next') {
+			void mangaView?.nextPage(shiftKey)
+		} else {
+			void mangaView?.prevPage(shiftKey)
+		}
+	}
+
+	document.getElementById('prev')?.addEventListener('click', (e) => {
+		turnPage(e.shiftKey, 'prev')
 	})
 
 	document.getElementById('click-judge-right')?.addEventListener('click', (e) => {
-		loupe.off()
-		void mangaView?.prevPage(e.shiftKey)
+		turnPage(e.shiftKey, 'prev')
 	})
 
 	document.getElementById('next')?.addEventListener('click', (e) => {
-		loupe.off()
-		void mangaView?.nextPage(e.shiftKey)
+		turnPage(e.shiftKey, 'next')
 	})
 
 	document.getElementById('click-judge-left')?.addEventListener('click', (e) => {
-		loupe.off()
-		void mangaView?.nextPage(e.shiftKey)
+		turnPage(e.shiftKey, 'next')
 	})
 
 	document.addEventListener('keydown', (e) => {
@@ -100,6 +114,10 @@ async function main() {
 		}
 		if (e.code === 'ArrowRight') {
 			void mangaView?.prevPage(e.shiftKey)
+		}
+
+		if (e.key === 's') {
+			capture.toggle()
 		}
 	})
 
@@ -124,6 +142,10 @@ async function main() {
 	})
 
 	document.getElementById('click-judge-center')?.addEventListener('click', () => {
+		if (capture.isEnabled) {
+			return
+		}
+
 		const thumbnails = document.getElementById('thumbnails') as HTMLDivElement
 		thumbnails.classList.toggle('thumbnails-visible')
 	})
@@ -168,17 +190,44 @@ async function main() {
 	})
 
 	judge.addEventListener('mousedown', (e) => {
-		loupe.on()
+		e.preventDefault()
 		const viewRect = judge.getBoundingClientRect()
 		const rx = e.clientX - viewRect.x
 		const ry = e.clientY - viewRect.y
+
+		if (capture.isEnabled) {
+			console.log(e.button)
+			if (e.button === 0) {
+				capture.onSelectStart(rx, ry)
+			} else {
+				loupe.on()
+			}
+		} else {
+			loupe.on()
+		}
 		loupe.drawLoupe(rx, ry)
-		e.preventDefault()
 	})
 
 	judge.addEventListener('mouseup', (e) => {
-		loupe.off()
 		e.preventDefault()
+
+		if (capture.isEnabled && e.button === 0) {
+			const viewRect = judge.getBoundingClientRect()
+			const rx = e.clientX - viewRect.x
+			const ry = e.clientY - viewRect.y
+			capture.onSelectEnd(rx, ry)
+		} else {
+			loupe.off()
+		}
+	})
+
+	judge.addEventListener('mousemove', (e) => {
+		if (capture.isEnabled && (e.buttons & 1) !== 0) {
+			const viewRect = judge.getBoundingClientRect()
+			const rx = e.clientX - viewRect.x
+			const ry = e.clientY - viewRect.y
+			capture.onSelect(rx, ry)
+		}
 	})
 }
 
