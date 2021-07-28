@@ -2,6 +2,7 @@ import { IMangaLoader, ZipMangaLoader, DirectoryMangaLoader } from './manga-load
 import { MangaFile, MangaView } from './manga'
 import { Loupe } from './loupe'
 import { genThumbnails, Thumbnails } from './thumbnail'
+import { Point, renderedRect, twoPointToRect } from './coordinate'
 import { ipcRenderer } from 'electron'
 import { promises as fs } from 'fs'
 import { resolve } from 'path'
@@ -52,40 +53,6 @@ async function loadManga(path: string): Promise<MangaView> {
 
 	await mangaView.moveToPage(0)
 	return mangaView
-}
-
-interface Point {
-	x: number
-	y: number
-}
-
-interface Rect {
-	x: number
-	y: number
-	width: number
-	height: number
-}
-
-function renderedRect(
-	imgW: number,
-	imgH: number,
-	viewW: number,
-	viewH: number
-): Rect & { ratio: number } {
-	const wRatio = viewW / imgW
-	const hRatio = viewH / imgH
-	const ratio = Math.min(wRatio, hRatio)
-	const width = ratio * imgW
-	const height = ratio * imgH
-	return { ratio, width, height, x: (viewW - width) / 2, y: (viewH - height) / 2 }
-}
-
-function twoPointToRect(p1: Point, p2: Point): Rect {
-	const x = Math.min(p1.x, p2.x)
-	const y = Math.min(p1.y, p2.y)
-	const width = Math.abs(p1.x - p2.x)
-	const height = Math.abs(p1.y - p2.y)
-	return { x, y, width, height }
 }
 
 class RegionSelector {

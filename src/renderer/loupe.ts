@@ -1,3 +1,5 @@
+import { renderedRect } from './coordinate'
+
 function minmax(v: number, min: number, max: number): number {
 	if (v < min) {
 		return min
@@ -8,20 +10,6 @@ function minmax(v: number, min: number, max: number): number {
 	}
 
 	return v
-}
-
-function renderedRect(
-	imgW: number,
-	imgH: number,
-	viewW: number,
-	viewH: number
-): { x: number; y: number; width: number; height: number; ratio: number } {
-	const wRatio = viewW / imgW
-	const hRatio = viewH / imgH
-	const ratio = Math.min(wRatio, hRatio)
-	const width = ratio * imgW
-	const height = ratio * imgH
-	return { ratio, width, height, x: (viewW - width) / 2, y: (viewH - height) / 2 }
 }
 
 export class Loupe {
