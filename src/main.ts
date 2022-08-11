@@ -1,4 +1,5 @@
 import { BrowserWindow, app, ipcMain, dialog } from 'electron'
+import path from 'path'
 
 function createWindow() {
 	return new BrowserWindow({
@@ -16,7 +17,11 @@ ipcMain.handle('get-args', () => {
 })
 
 ipcMain.handle('get-cache-path', () => {
-	return app.getPath('cache')
+	if (['linux', 'freebsd', 'openbsd', 'sunos'].includes(process.platform)) {
+		return process.env.XDG_CACHE_HOME ?? path.join(app.getPath('home'), '.config')
+	} else {
+		return app.getPath('temp')
+	}
 })
 
 async function main() {
