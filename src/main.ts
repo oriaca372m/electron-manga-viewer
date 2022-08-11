@@ -25,6 +25,9 @@ ipcMain.handle('get-cache-path', () => {
 })
 
 async function main() {
+	// ないとサムネイルがまともに動かなくなる
+	app.disableHardwareAcceleration()
+
 	await app.whenReady()
 	const window = createWindow()
 
